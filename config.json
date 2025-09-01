@@ -1,0 +1,25 @@
+{
+  "steps": ["clean", "transform", "analyze"],
+  "error_handling": "continue",
+  "step_params": {
+    "clean": {
+      "remove_extra_spaces": true,
+      "preserve_newlines": false,
+      "trim_edges": true
+    },
+    "transform": {
+      "to_lowercase": true,
+      "remove_punctuation": true,
+      "remove_numbers": false,
+      "remove_special_chars": false
+    },
+    "analyze": {
+      "count_words": true,
+      "count_characters": true,
+      "count_sentences": true,
+      "count_paragraphs": true,
+      "average_word_length": true,
+      "reading_level": true
+    }
+  }
+}
