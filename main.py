@@ -109,6 +109,7 @@ def _display_results(result, verbose=False):
     # Add basic results
     table.add_row("Processed Text", result.processed_text[:100] + (
         '...' if len(result.processed_text) > 100 else ''))
+    table.add_row("Tokenized Text", ", ".join(result.tokenized_text))
     table.add_row("Steps Applied", ", ".join(result.steps_applied))
     table.add_row("Steps Skipped", ", ".join(result.steps_skipped)
                   if result.steps_skipped else "None")
@@ -119,7 +120,6 @@ def _display_results(result, verbose=False):
         table.add_row(key.replace('_', ' ').title(), str(value))
 
     console.print(table)
-
     # Display errors if any
     if result.errors:
         console.print("\n[red]Errors encountered:[/red]")

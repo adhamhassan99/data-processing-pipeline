@@ -4,6 +4,7 @@ import time
 import logging
 from typing import Union, List, Dict, Any
 
+import spacy
 from rich.logging import RichHandler
 from rich.console import Console
 from rich.traceback import install
@@ -38,6 +39,18 @@ class TextPipeline:
 
         self.step_registry = StepRegistry()
         self.statistics = StatisticsCollector()
+
+        # Load spaCy model for tokenization
+        try:
+            self.nlp = spacy.load("en_core_web_sm")
+        except OSError:
+            # Fallback to basic English model if en_core_web_sm is not available
+            try:
+                self.nlp = spacy.load("en_core_web_lg")
+            except OSError:
+                # If no spaCy model is available, we'll handle it gracefully
+                self.nlp = None
+
         self._validate_config()
 
     def _validate_config(self) -> None:
@@ -66,14 +79,18 @@ class TextPipeline:
             return {
                 'remove_extra_spaces': True,
                 'preserve_newlines': False,
-                'trim_edges': True
+                'trim_edges': True,
+                'lowercase': True,
+                'remove_punctuation': True,
+                'remove_stopwords': True
             }
         elif step_name == 'transform':
             return {
                 'to_lowercase': True,
                 'remove_punctuation': True,
-                'remove_numbers': False,
-                'remove_special_chars': False
+                'remove_numbers': True,
+                'remove_special_chars': True,
+                'apply_stemming': True
             }
         elif step_name == 'analyze':
             return {
@@ -151,9 +168,13 @@ class TextPipeline:
         finally:
             processing_time = time.time() - start_time
 
+        # Tokenize the final result using spaCy
+        tokenized_text = self._tokenize_text(current_text)
+
         # Create and return result
         result = ProcessingResult(
             processed_text=current_text,
+            tokenized_text=tokenized_text,
             steps_applied=self.statistics.steps_applied.copy(),
             steps_skipped=self.statistics.steps_skipped.copy(),
             processing_time=processing_time,
@@ -165,6 +186,18 @@ class TextPipeline:
                     f"skipped {len(self.statistics.steps_skipped)} steps")
 
         return result
+
+    def _tokenize_text(self, text: str) -> List[str]:
+        """Tokenize text using spaCy."""
+        if self.nlp is not None:
+            # Use spaCy for sophisticated tokenization
+            doc = self.nlp(text)
+            return [token.text for token in doc]
+        else:
+            # Fallback to simple whitespace tokenization
+            logger.warning(
+                "No spaCy model available, using simple whitespace tokenization")
+            return text.split()
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get current pipeline statistics."""

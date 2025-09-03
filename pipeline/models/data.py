@@ -8,6 +8,7 @@ from datetime import datetime
 class ProcessingResult(BaseModel):
     """Result of processing text through the pipeline."""
     processed_text: str
+    tokenized_text: List[str]
     steps_applied: List[str]
     steps_skipped: List[str]
     processing_time: float
